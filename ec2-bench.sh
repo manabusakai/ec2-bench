@@ -4,6 +4,8 @@ usage() {
     echo "Usage: $(basename ${0}) -c [count] -u [url]"
 }
 
+prog=`echo $(basename ${0}) | sed -e "s/\.sh//g"`
+
 while getopts "c:u:" option
 do
     case ${option} in
@@ -57,7 +59,7 @@ instance_id=`cat ${output_file} | jq -r ".Instances[].InstanceId"`
 
 aws ec2 create-tags \
     --resources ${instance_id} \
-    --tags Key=Name,Value=apache-bench \
+    --tags Key=Name,Value=${prog} \
     > /dev/null
 
 rm -r ${work_dir}
