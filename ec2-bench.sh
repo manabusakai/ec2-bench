@@ -20,6 +20,12 @@ do
     esac
 done
 
+# Config file check
+if [ ! -r ~/.aws/config ]; then
+    echo "Cannot read config file." 1>&2
+    exit 1
+fi
+
 # Command check
 if ! type -p jq > /dev/null; then
     echo "Command not found: jq" 1>&2
