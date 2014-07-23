@@ -1,17 +1,14 @@
 #!/bin/bash
 
 usage() {
-    echo "Usage: $(basename ${0}) -c [count] -u [url]"
+    echo "Usage: $(basename ${0}) -u [url]"
 }
 
 prog=`echo $(basename ${0}) | sed -e "s/\.sh//g"`
 
-while getopts "c:u:" option
+while getopts "u:" option
 do
     case ${option} in
-        c)
-            instance_count=${OPTARG}
-            ;;
         u)
             target_url=${OPTARG}
             ;;
@@ -23,7 +20,7 @@ do
 done
 
 # Config file check
-if [ ! -r ~/.aws/config ]; then
+if [ ! -r ~/.aws/config ] || [ ! -r ${prog}.conf ]; then
     echo "Cannot read config file." 1>&2
     exit 1
 fi
@@ -34,6 +31,8 @@ if ! type -p jq > /dev/null; then
     exit 1
 fi
 
+. ${prog}.conf
+
 work_dir=`mktemp -d /tmp/aws.XXXXXX`
 user_data="${work_dir}/user-data.txt"
 output_file="${work_dir}/output.json"
@@ -43,13 +42,13 @@ cat <<EOF > ${user_data}
 packages:
  - httpd
 runcmd:
- - [ab, -n, 50000, -c, 50, "${target_url}"]
+ - [ab, -n, ${request_number}, -c, ${client_number}, "${target_url}"]
  - [shutdown, -h, now]
 EOF
 
 aws ec2 run-instances \
-    --image-id ami-29dc9228 \
-    --instance-type t2.micro \
+    --image-id ${image_id} \
+    --instance-type ${instance_type} \
     --count ${instance_count} \
     --associate-public-ip-address \
     --user-data file://${user_data} \
