@@ -1,23 +1,17 @@
 #!/bin/bash
 
 usage() {
-    echo "Usage: $(basename ${0}) -u [url]"
+    echo "Usage: $(basename ${0}) [url]"
 }
 
 prog=`echo $(basename ${0}) | sed -e "s/\.sh//g"`
 
-while getopts "u:" option
-do
-    case ${option} in
-        u)
-            target_url=${OPTARG}
-            ;;
-        *)
-            usage 1>&2
-            exit 1
-            ;;
-    esac
-done
+if [ $# -eq 1 ]; then
+    target_url="${1}"
+else
+    usage 1>&2
+    exit 1
+fi
 
 # Config file check
 if [ ! -r ~/.aws/config ] || [ ! -r ${prog}.conf ]; then
