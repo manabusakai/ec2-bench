@@ -40,13 +40,24 @@ runcmd:
  - [shutdown, -h, now]
 EOF
 
-aws ec2 run-instances \
-    --image-id ${image_id} \
-    --instance-type ${instance_type} \
-    --count ${instance_count} \
-    --associate-public-ip-address \
-    --user-data file://${user_data} \
-    > ${output_file}
+is_ec2_vpc=`aws ec2 describe-vpcs --filters Name=isDefault,Values=true | jq -r ".Vpcs[]"`
+
+if [ "${is_ec2_vpc}" ]; then
+    aws ec2 run-instances \
+        --image-id ${image_id} \
+        --instance-type ${instance_type} \
+        --count ${instance_count} \
+        --associate-public-ip-address \
+        --user-data file://${user_data} \
+        > ${output_file}
+else
+    aws ec2 run-instances \
+        --image-id ${image_id} \
+        --instance-type ${instance_type} \
+        --count ${instance_count} \
+        --user-data file://${user_data} \
+        > ${output_file}
+fi
 
 instance_id=`cat ${output_file} | jq -r ".Instances[].InstanceId"`
 
