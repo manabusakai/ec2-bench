@@ -4,6 +4,12 @@ usage() {
     echo "Usage: $(basename ${0}) [url]"
 }
 
+supported_platform() {
+    aws ec2 describe-account-attributes \
+        --attribute-names supported-platforms \
+        | jq -r ".AccountAttributes[].AttributeValues | length"
+}
+
 prog=`echo $(basename ${0}) | sed -e "s/\.sh//g"`
 
 if [ $# -eq 1 ]; then
@@ -40,9 +46,7 @@ runcmd:
  - [shutdown, -h, now]
 EOF
 
-is_ec2_vpc=`aws ec2 describe-vpcs --filters Name=isDefault,Values=true | jq -r ".Vpcs[]"`
-
-if [ "${is_ec2_vpc}" ]; then
+if [ $(supported_platform) -eq 1 ]; then
     aws ec2 run-instances \
         --image-id ${image_id} \
         --instance-type ${instance_type} \
